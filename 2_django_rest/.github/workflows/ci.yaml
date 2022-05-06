@@ -1,0 +1,26 @@
+name: CI flow
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Start stack
+        run: docker-compose up --force-recreate -d --build
+
+      - name: Run tests
+        run: |
+          sleep 10
+          docker-compose restart app
+          docker-compose exec -T app ./manage.py test --no-input

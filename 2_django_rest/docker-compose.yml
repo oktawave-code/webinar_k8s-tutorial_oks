@@ -1,0 +1,38 @@
+version: "3.9"
+   
+services:
+  mysql:
+    image: mariadb
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=toor
+      - MYSQL_USER=userx
+      - MYSQL_PASSWORD=userxpassword
+      - MYSQL_DATABASE=db
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  app:
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./app:/app
+    environment:
+      - DB_HOST=mysql
+      - DB_NAME=db
+      - DB_USER=root
+      - DB_PASS=toor
+      - DB_PORT=3306
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy

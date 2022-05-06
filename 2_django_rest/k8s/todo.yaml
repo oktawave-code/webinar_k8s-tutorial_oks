@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo
+  labels:
+    app: todo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: todo
+  template:
+    metadata:
+      labels:
+        app: todo
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - todo
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: todo
+        image: ghcr.io/PROJECT_ID/IMAGE
+        command: [ "/bin/sh" ]
+        args: [ "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+        env:
+        - name: DB_HOST
+          value: "mysql-0.mysql"
+        - name: DB_USER
+          value: "todo"
+        - name: DB_PASS
+          value: "doto321"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "todo"
+        ports:
+        - containerPort: 8000
